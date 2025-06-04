@@ -29,7 +29,7 @@ from chatbot_rag.RAG import RAG
 # Use a specific Ollama model
 rag = RAG(path="./data/")
 rag()
-bot = Chatbot(name="llama3")
+bot = Chatbot(name="deepseek-r1:8b")
 
 # Query with specific parameters
 question = "Summarize my recent research on climate change"
@@ -43,7 +43,7 @@ print(response)
 from chatbot_rag.chat import Chatbot 
 from chatbot_rag.RAG import RAG
 
-# Use a specific Ollama model
+
 with tempfile.TemporaryDirectory() as tmpdirname:
     persistent_dir = os.path.join(tmpdirname, "all_info/")
     os.makedirs(persistent_dir, exist_ok=True)
