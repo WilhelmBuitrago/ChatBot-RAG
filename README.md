@@ -11,7 +11,7 @@ A powerful chatbot implementation using Retrieval Augmented Generation (RAG) to 
 ## Installation
 
 ```bash
-pip install chat-rag
+pip install chatbot-rag
 ```
 
 ## Requirements
@@ -21,12 +21,13 @@ pip install chat-rag
 
 ## Quick Start
 ```python
-from chat_rag import ChatBot, RAG
+from chatbot_rag.chat import Chatbot 
+from chatbot_rag.RAG import RAG
 
 # Use a specific Ollama model
 rag = RAG(path="./data/")
 rag()
-bot = ChatBot(model="llama3")
+bot = Chatbot(name="llama3")
 
 # Query with specific parameters
 question = "Summarize my recent research on climate change"

@@ -1,23 +1,27 @@
 import os
 from glob import glob
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import FAISS
+import pickle
 
 
 class RAG:
     def __init__(
         self,
         path: str,
-        base_persist_dir: str = "./all_info",
+        base_persist_path: str = "./info/",
+        base_persist_name: str = "all_info",
         preprocessing=None,
         *args,
         **kwargs,
     ):
 
         self.path = path
-        self.base_persist_dir = base_persist_dir
+        self.base_persist_path = os.path.join(base_persist_path, base_persist_name)
         self.preprocessing = (
-            preprocessing(path=path) if preprocessing else BasePreprocessing(path=path)
+            preprocessing(path=path, *args, **kwargs)
+            if preprocessing
+            else BasePreprocessing(path=path)
         )
         self.debug = kwargs.get("debug", False)
         self.name_embeddings_model = kwargs.get(
@@ -28,7 +32,7 @@ class RAG:
 
     def __call__(self):
         return self._generate_db(
-            base_persist_dir=self.base_persist_dir,
+            base_persist_path=self.base_persist_path,
             force_update=False,
         )
 
@@ -46,50 +50,53 @@ class RAG:
             print(f"[ERROR] No se pudo cargar el modelo de embeddings: {e}")
             return None
 
-    def _db_processing(self, document, persist_dir="./all_info", exist=False):
+    def _db_processing(self, document, persist_path="./all_info", exist=False):
         if exist:
             if self.debug:
-                print(f"[DEBUG] Cargando base de datos existente en '{persist_dir}'")
-            db = Chroma(persist_directory=persist_dir, embedding_function=self.model)
+                print(f"[DEBUG] Cargando base de datos existente en '{persist_path}'")
+            with open(persist_path, "rb") as f:
+                db = pickle.load(f)
             return db
         else:
-            db = Chroma.from_documents(
-                documents=document, embedding=self.model, persist_directory=persist_dir
-            )
-            db.persist()
+            if self.debug:
+                print(f"[DEBUG] Creando nueva base de datos en '{persist_path}'")
+            db = FAISS.from_documents(document, self.model)
+            os.makedirs(os.path.dirname(persist_path), exist_ok=True)
+            with open(persist_path, "wb") as f:
+                pickle.dump(db, f)
         return db
 
     def _generate_db(
         self,
-        base_persist_dir="./all_info",
+        base_persist_path="./all_info",
         force_update=False,
         return_db=False,
     ):
 
         index_exists = (
-            os.path.exists(base_persist_dir) and len(os.listdir(base_persist_dir)) > 0
+            os.path.exists(base_persist_path) and len(os.listdir(base_persist_path)) > 0
         )
 
         if index_exists and not force_update:
             if self.debug:
                 print(
-                    f"[DEBUG] Cargando índice unificado existente en '{base_persist_dir}'"
+                    f"[DEBUG] Cargando índice unificado existente en '{base_persist_path}'"
                 )
 
             db = self._db_processing(
-                exist=True, document=None, persist_dir=base_persist_dir
+                exist=True, document=None, persist_path=base_persist_path
             )
         else:
             # Reconstruir el índice unificado
             if self.debug:
                 print(
-                    f"[DEBUG] Creando un nuevo índice unificado en '{base_persist_dir}'"
+                    f"[DEBUG] Creando un nuevo índice unificado en '{base_persist_path}'"
                 )
 
             db = self._db_processing(
                 exist=False,
                 document=self.preprocessing(),
-                persist_dir=base_persist_dir,
+                persist_path=base_persist_path,
             )
 
         self.db = db

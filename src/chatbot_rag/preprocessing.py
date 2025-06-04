@@ -1,8 +1,16 @@
 import os
 from glob import glob
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import FileSystemBlobLoader, PyMuPDFLoader
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers import (
+    PyMuPDFParser,
+    TesseractBlobParser,
+)
+
 from langchain.schema import Document
 import pdfplumber
+import pytesseract
 
 
 class BasePreprocessing:
@@ -79,4 +87,57 @@ class BasePreprocessing:
         texto = self._extract_text_from_pdf()
         return self._fragmentar_texto(
             texto, chunks_size=chunks_size, chunk_overlap=chunk_overlap
+        )
+
+
+class PyMuPDFPreprocessing(BasePreprocessing):
+    def __init__(self, path, chunks_size=512, chunk_overlap=100, *args, **kwargs):
+        super().__init__(path, chunks_size, chunk_overlap)
+        self.tesseract_path = kwargs.get("tesseract_path", None)
+        self.extract_images = kwargs.get("extract_images", True)
+        self.images_parser = kwargs.get(
+            "images_parser", TesseractBlobParser(langs=["spa", "eng"])
+        )
+        self.images_inner_format = kwargs.get("images_inner_format", "html-img")
+        self.extract_tables = kwargs.get("extract_tables", "html")
+        self.mode = kwargs.get("mode", "page")
+        if self.tesseract_path is None:
+            raise ValueError("You must provide the path to the Tesseract executable.")
+        if not os.path.exists(
+            os.path.join(*self.tesseract_path.split("/")[:-1] + ["\\"])
+        ):
+            raise FileNotFoundError(
+                f"The Tesseract executable does not exist at the path: {self.tesseract_path}"
+            )
+
+        pytesseract.pytesseract.tesseract_cmd = os.path.abspath(self.tesseract_path)
+        self.parser = PyMuPDFParser(
+            extract_images=self.extract_images,
+            images_parser=self.images_parser,
+            images_inner_format=self.images_inner_format,
+            extract_tables=self.extract_tables,
+            mode=self.mode,
+        )
+        self.primary_loader = GenericLoader(
+            blob_loader=FileSystemBlobLoader(path=self.path, glob="*.pdf"),
+            blob_parser=self.parser,
+        )
+
+    def _preprocess(self, chunks_size: int = 512, chunk_overlap: int = 100) -> list:
+        """
+        Preprocess the PDF file using PyMuPDF.
+        Returns:
+            list: A list of Document objects containing the fragmented text.
+        """
+        documents = self.primary_loader.load()
+        all_text = ""
+        for doc in documents:
+            if isinstance(doc, Document):
+                all_text += doc.page_content + "\n"
+            else:
+                raise TypeError(
+                    f"Expected Document type, but got {type(doc)}. Ensure the loader is set up correctly."
+                )
+        return self._fragmentar_texto(
+            all_text, chunks_size=chunks_size, chunk_overlap=chunk_overlap
         )
