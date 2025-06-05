@@ -112,7 +112,7 @@ class HuggingFaceChatbot(BaseChatbot):
         self.token = token
         self.provider = provider
         self.client = InferenceClient(
-            api_key="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",
+            api_key=token,
             model="deepseek-ai/DeepSeek-V3-0324",
             provider="hyperbolic",
         )
