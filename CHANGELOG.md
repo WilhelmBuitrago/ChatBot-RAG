@@ -11,3 +11,14 @@
 - Fixed errors in MyPyPDFPreprocessing for environments without Tesseract.
 - Fixed path errors in RAG (Retrieval-Augmented Generation).
 
+# 0.1.8 
+## 06-05-2025 
+- Some errors related to the use of RAG were corrected.
+
+# 0.1.9
+## 06-06-2025
+- Functionality for interacting with Hugging Face APIs was added.
+- The chatbot functionality was modularized to support integration with both Ollama and Hugging Face.
+- Errors in the preprocessor were corrected.
+- Issues related to the RAG component were fixed.
+
