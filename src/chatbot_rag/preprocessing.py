@@ -99,7 +99,8 @@ class PyMuPDFPreprocessing(BasePreprocessing):
             "images_parser", TesseractBlobParser(langs=["spa", "eng"])
         )
         self.images_inner_format = kwargs.get("images_inner_format", "html-img")
-        self.extract_tables = kwargs.get("extract_tables", "html")
+        self.extract_tables = kwargs.get("extract_tables", True)
+        self.extract_tables_mode = kwargs.get("extra_tables_mode", "html")
         self.mode = kwargs.get("mode", "page")
         if self.extract_images:
             if self.tesseract_path is None:
@@ -112,13 +113,18 @@ class PyMuPDFPreprocessing(BasePreprocessing):
                 raise FileNotFoundError(
                     f"The Tesseract executable does not exist at the path: {self.tesseract_path}"
                 )
-
             pytesseract.pytesseract.tesseract_cmd = os.path.abspath(self.tesseract_path)
+        else:
+            self.images_parser = None
+
+        if not self.extract_tables:
+            self.extract_tables = None
+
         self.parser = PyMuPDFParser(
             extract_images=self.extract_images,
             images_parser=self.images_parser,
             images_inner_format=self.images_inner_format,
-            extract_tables=self.extract_tables,
+            extract_tables=self.extract_tables_mode,
             mode=self.mode,
         )
         self.primary_loader = GenericLoader(

@@ -18,6 +18,30 @@ pip install chatbot-rag
 
 - Python 3.12
 - Ollama (for local model hosting)
+- Tesseract-OCR (for image-based data extraction)
+
+### Tesseract Installation
+
+To enable image-based data extraction, you need to install **Tesseract-OCR**.  
+Follow the installation instructions provided at this [link](https://tesseract-ocr.github.io/tessdoc/Installation.html).
+
+After installation, ensure the `tesseract` executable is accessible in your system's PATH.  
+For example, on Windows, you can verify by running:
+
+```bash
+tesseract --version
+```
+
+### Ollama Installation
+
+Ollama is required for hosting models locally.  
+Refer to the official Ollama documentation for installation instructions: [Ollama Installation Guide](https://ollama.com/docs/installation).
+
+Once installed, verify it is working by running:
+
+```bash
+ollama --version
+```
 
 ## Use
 
@@ -78,10 +102,7 @@ print(f"Question: {answer}")
 ```
 
 
-By default, the system will attempt to extract information from images using **Tesseract-OCR**, so it must be installed beforehand.  
-You can refer to the installation instructions at this [link](https://tesseract-ocr.github.io/tessdoc/Installation.html).
-
-You can disable image extraction by adding the following to the `kwargs`:
+By default, the system will attempt to extract information from images using **Tesseract-OCR**. You can disable image extraction by adding the following to the `kwargs`:
 
 ```python
 kwargs = {"extract_images": False}
@@ -89,7 +110,19 @@ kwargs = {"extract_images": False}
 
 and passing it directly to the RAG component.
 
+## Projects Using ChatBot-RAG
 
+### 🌟 [ChatBot-RAG App](https://github.com/WilhelmBuitrago/chatbot_rag_app)
+
+ChatBot-RAG App is a chatbot framework leveraging **Retrieval-Augmented Generation (RAG)** to deliver context-aware responses.  
+It integrates **🔗 LangChain** for advanced pipelines and supports **🧠 Ollama** for local model hosting, ensuring enhanced privacy and customization.
+
+Key Features:
+- 🔍 **Context-Aware Responses**: Uses RAG to provide accurate and relevant answers.
+- 🧠 **Local Model Hosting**: Powered by Ollama for privacy and flexibility.
+- 🔗 **Advanced Pipelines**: Built on LangChain for seamless integration and extensibility.
+
+Explore the project here: [ChatBot-RAG App](https://github.com/WilhelmBuitrago/chatbot_rag_app)
 
 ## License
 
