@@ -73,9 +73,7 @@ class RAG:
         return_db=False,
     ):
 
-        index_exists = (
-            os.path.exists(base_persist_path) and len(os.listdir(base_persist_path)) > 0
-        )
+        index_exists = os.path.exists(base_persist_path)
 
         if index_exists and not force_update:
             if self.debug:
